@@ -1,7 +1,8 @@
 # 휴대폰 녹음 폴더 → 구글 드라이브 자동 업로드 설정 가이드
 
-> **대상 기기:** 삼성 갤럭시 **S24+** (One UI 6 기준)
+> **대상 기기:** 삼성 갤럭시 **S24+** (One UI **8.5**)
 > **목표:** 휴대폰의 **전화(통화녹음) · 에이닷 전화 · 음성녹음** 폴더에 새 파일이 생기면 **자동으로 구글 드라이브에 업로드**되도록 설정
+> **드라이브 저장 구조:** `01.KEVIN_HP` → `01.음성데이타` → (폰 폴더 이름 그대로)
 > **방식:** 코딩 없이, 무료 자동화 앱 **FolderSync** 사용 (앱 설치 → 구글 드라이브 연결 → 폴더 지정 → 자동 동기화)
 
 이 문서는 [`docs/`](docs/) 폴더의 상세 자료와 함께 보세요.
@@ -15,13 +16,25 @@
 ## 📌 한눈에 보기
 
 ```
-[휴대폰 녹음 폴더]                          [구글 드라이브]
- /Recordings/Call               ─┐
- /Recordings/Voice              ─┼──(FolderSync 자동 동기화)──▶  /녹음백업/...
- /Recordings/TPhoneCallRecords  ─┘            (새 파일 생기면 자동 업로드)
+[휴대폰 녹음 폴더]                         [구글 드라이브]
+ /Recordings/Call              ──┐         01.KEVIN_HP
+ /Recordings/Voice             ──┼─(자동)─▶ └─ 01.음성데이타
+ /Recordings/TPhoneCallRecords ──┘             ├─ Call               (← 전화 통화녹음)
+                                               ├─ Voice              (← 음성녹음)
+                                               └─ TPhoneCallRecords  (← 에이닷 전화)
 ```
 
 S24+는 **세 폴더가 모두 내장 저장공간 `Recordings` 폴더 아래**에 있어서, 특별한 권한 없이 그대로 동기화할 수 있습니다. (안드로이드 `Android/data` 폴더 접근 제한과 무관)
+
+> **드라이브 폴더 구조 (요청하신 형태):**
+> ```
+> 01.KEVIN_HP/
+> └── 01.음성데이타/
+>     ├── Call                ← 폰: Recordings/Call
+>     ├── Voice               ← 폰: Recordings/Voice
+>     └── TPhoneCallRecords   ← 폰: Recordings/TPhoneCallRecords
+> ```
+> 폰의 폴더 이름(Call/Voice/TPhoneCallRecords)을 그대로 사용합니다.
 
 ---
 
@@ -58,9 +71,16 @@ S24+는 **세 폴더가 모두 내장 저장공간 `Recordings` 폴더 아래**�
 
 ## 3단계. 동기화 폴더쌍(Folderpair) 만들기
 
+> **먼저 구글 드라이브에 폴더를 만들어 두세요.** (구글 드라이브 앱 또는 FolderSync 폴더 선택 화면의 "새 폴더" 버튼으로 만들 수 있습니다)
+> ```
+> 01.KEVIN_HP
+> └── 01.음성데이타
+> ```
+> 이 `01.음성데이타` 폴더 안에 폰 폴더(Call/Voice/TPhoneCallRecords)가 복사됩니다.
+
 ### ✅ 간단 방법 (추천) — 폴더 하나로 세 폴더 모두 백업
 
-`Recordings` 폴더 전체를 동기화하면 Call · Voice · TPhoneCallRecords가 한 번에 올라갑니다.
+`Recordings` 폴더 전체를 `01.음성데이타` 안으로 동기화하면, **폰 폴더 이름 그대로** Call · Voice · TPhoneCallRecords가 한 번에 만들어지며 올라갑니다. (요청하신 구조와 정확히 일치)
 
 1. FolderSync → **폴더쌍(Folderpairs)** → **+ (새로 만들기)**
 2. 아래와 같이 설정:
@@ -70,25 +90,29 @@ S24+는 **세 폴더가 모두 내장 저장공간 `Recordings` 폴더 아래**�
 | **이름(Name)** | `녹음 전체 백업` |
 | **계정(Account)** | 2단계에서 추가한 Google Drive |
 | **동기화 유형(Sync type)** | **로컬 → 원격 (To remote folder)** ← *업로드만* |
-| **원격 폴더(Remote folder)** | 구글 드라이브 안에 `녹음백업` 폴더 새로 만들어 선택 |
+| **원격 폴더(Remote folder)** | `01.KEVIN_HP / 01.음성데이타` 선택 |
 | **로컬 폴더(Local folder)** | `내장 저장공간 / Recordings` 선택 |
 
 3. **하위 폴더 포함(Sync subfolders)** = **켜기(ON)** 확인
 4. 저장
 
 > 이 방법이면 폴더쌍 **1개**만 만들면 됩니다.
+> 결과: `01.KEVIN_HP/01.음성데이타/Call`, `.../Voice`, `.../TPhoneCallRecords` 자동 생성.
+> ⚠️ `Recordings` 안에 다른 폴더가 있으면 그것도 함께 올라갑니다. **딱 세 폴더만** 원하면 아래 "분리 방법"을 쓰세요.
 
 ---
 
-### 🧩 분리 방법 — 폴더별로 따로 관리하고 싶을 때
+### 🧩 분리 방법 — 딱 세 폴더만, 폴더 이름 그대로
 
-폴더마다 구글 드라이브 위치를 다르게 두고 싶으면, 아래 표대로 **폴더쌍 3개**를 만드세요. (만드는 과정은 위와 동일, "로컬 폴더"와 "원격 폴더"만 다름)
+`01.음성데이타` 아래에 폰 폴더 이름 그대로 **세 폴더쌍**을 만듭니다. (만드는 과정은 위와 동일, "로컬 폴더"와 "원격 폴더"만 다름)
 
 | 폴더쌍 이름 | 로컬 폴더 (내장 저장공간) | 원격 폴더 (구글 드라이브) |
 |---|---|---|
-| `통화녹음 백업` | `Recordings / Call` | `녹음백업 / 전화` |
-| `음성녹음 백업` | `Recordings / Voice` | `녹음백업 / 음성녹음` |
-| `에이닷 백업` | `Recordings / TPhoneCallRecords` | `녹음백업 / 에이닷전화` |
+| `통화녹음 백업` | `Recordings / Call` | `01.KEVIN_HP / 01.음성데이타 / Call` |
+| `음성녹음 백업` | `Recordings / Voice` | `01.KEVIN_HP / 01.음성데이타 / Voice` |
+| `에이닷 백업` | `Recordings / TPhoneCallRecords` | `01.KEVIN_HP / 01.음성데이타 / TPhoneCallRecords` |
+
+> 원격 폴더의 `Call` / `Voice` / `TPhoneCallRecords` 는 FolderSync 폴더 선택 화면에서 **"새 폴더"** 로 미리 만들거나, 폴더쌍 옵션의 **"대상 폴더 자동 생성(Create target folder)"** 을 켜면 자동으로 만들어집니다.
 
 세 개 모두 **동기화 유형 = 로컬 → 원격(업로드만)**, **하위 폴더 포함 = 켜기** 로 설정하세요.
 
